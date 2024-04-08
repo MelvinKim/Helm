@@ -1,0 +1,31 @@
+container:
+  name: backend-server
+  image:
+    name: "melvinkimathi/cache-invalidation"
+    tag: "latest"
+    imagePullPolicy: "Always"
+  port:
+    name: "http"
+    number: 5000
+  extraEnv:
+  - name: MONGODB_URI
+    value: ""
+  secretName: backend-secret
+
+service:
+  type: NodePort
+  ports:
+    - protocol: "TCP"
+      port: 80
+      targetPort: 3000
+
+ingress:
+  rules:
+  - host: "backend.minikube.local"
+    paths:
+    - path: /
+      pathType: Prefix
+      service:
+        name: backend
+        port:
+          number: 80

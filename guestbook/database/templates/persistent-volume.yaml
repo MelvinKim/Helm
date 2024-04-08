@@ -1,14 +1,15 @@
 kind: PersistentVolume
 apiVersion: v1
 metadata:
-  name: mongodb-pv-volume
+  name: "{{ .Release.Name}}-pv"
   labels:
-    type: local
+    type: {{ .Values.database.labels.type }}
 spec:
-  storageClassName: manual
+  {{- with .Values.database }}
+  storageClassName: {{ .storageClassName }}
   capacity:
-    storage: 100Mi
-  accessModes:
-    - ReadWriteOnce
+    storage: {{ .resources.requests.storage }}
+  accessModes: {{ .accessModes }}
   hostPath:
-    path:  /mnt/data
+    path:  {{ .hostPath.path | quote }}
+  {{- end }}

@@ -1,0 +1,34 @@
+database:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  storage: 100Mi
+  resources:
+    requests:
+      storage: 100Mi
+  labels:
+    type: local
+  hostPath:
+    path: /mnt/data
+  replicas: 1
+  container:
+    name: mongo
+    image:
+      name: "mongodb"
+      tag: "2.0"
+    ports:
+      - name: mongodb
+        containerPort: 27017
+    volumeMounts:
+      name: mongodb-volume
+      mountPath: mountPath
+    volumes:
+      - name: mongodb-volume
+        claimName: mongodb-pvc
+
+service:
+  type: NodePort
+  ports:
+    - name: mongodb
+      port: 27017
+      targetPort: 27017

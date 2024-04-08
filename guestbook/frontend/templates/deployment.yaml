@@ -1,33 +1,38 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: frontend
+  name: "{{ .Release.Name }}-deployment"
+  labels:
+    app: "{{ .Release.Name }}-app"
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: frontend
+      app: "{{ .Release.Name }}-app"
   template:
     metadata:
       labels:
-        app: frontend
+        app: "{{ .Release.Name }}-app"
     spec:
+      {{- with .Values.container }}
       containers:
-      - image: phico/frontend:2.0
-        imagePullPolicy: Always
-        name: frontend
+      - image: "{{ .image.name }}:{{ .image.tag }}"
+        imagePullPolicy: {{ .image.imagePullPolicy }}
+        name: {{ .name }}
+        {{- range .ports }}
         ports:
-        - name: frontend
-          containerPort: 4200
+        - name: {{ .name }}
+          containerPort: {{ .containerPort }}
+        {{- end }}
         env:
         - name: BACKEND_URI
           valueFrom:
             configMapKeyRef:
-              name: frontend-config
+              name: {{ .configMapName }}
               key: backend-uri
         - name: GUESTBOOK_NAME
           valueFrom:
             configMapKeyRef:
-              name: frontend-config
+              name: {{ .configMapName }}
               key: guestbook-name
-
+    {{- end }}

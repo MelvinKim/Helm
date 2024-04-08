@@ -1,19 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mongodb
+  name: "{{ .Release.Name }}-deployment"
+  labels:
+    app: "{{ .Release.Name }}-app"
 spec:
-  replicas: 1
+  {{- with .Values.database }}
+  replicas: {{ .replicas }}
   selector:
     matchLabels:
-      app: mongodb
+      app: "{{ $.Release.Name }}-app"
   template:
     metadata:
       labels:
-        app: mongodb
+        app: "{{ $.Release.Name }}-app"
     spec:
       containers:
-        - image: mongo
+        - image: "{{ .container.image.name }}:{{ .container.image.tag }}"
           env:
           - name: MONGO_INITDB_DATABASE
             value: guestbook
@@ -27,14 +30,19 @@ spec:
               secretKeyRef:
                 name: mongodb-secret
                 key: mongodb-password
-          name: mongodb
+          name: {{ .container.name }}
           ports:
-            - name: mongodb
-              containerPort: 27017
+            {{- range .container.ports }}
+            - name: {{ .name }}
+              containerPort: {{ .containerPort }}
+            {{- end }}
           volumeMounts:
-            - name: mongodb-volume
-              mountPath: /data/db
+            - name: {{ .container.volumeMounts.name }}
+              mountPath: {{ .container.volumeMounts.mountPath }}
       volumes:
-        - name: mongodb-volume
+        {{- range .container.volumes}}
+        - name: {{ .name }}
           persistentVolumeClaim:
-            claimName: mongodb-pvc
+            claimName: {{ .claimName }}
+        {{- end }}
+  {{- end }}
